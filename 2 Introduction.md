@@ -58,17 +58,6 @@ Examples:
 Limitation:
 Cannot recover missing knowledge.
 
-
-# Generate-on-Graph
-Treat LLM as an agent exploring the given KGs to retrieve relevant triples.
-
-As a KG to generate additional factual triples.
-
-`Retrieval + Generation`
-
-Key difference:
-Generate missing triples when retrieval fails.
-
 # Contributions
  
 Purpose leveraging LLMs for QA under incompleter KG (IKGQA) to better evaluate LLMs' ability, and construct corresponding IKGQA datasets based on existing KGQA dataset.
