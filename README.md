@@ -41,17 +41,17 @@ Seminar/
 
 ├── README.md
 
-├── report/
+├── Report/
 
 ├── presentation/
 
 ├── notes/
 
-├── reproduction/
+├── Reimplementation/
 
-├── experiments/
+├── Experiment/
 
-└── figures/
+└── Reference/
 
 ---
 
