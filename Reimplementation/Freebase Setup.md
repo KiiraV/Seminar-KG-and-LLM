@@ -17,6 +17,21 @@ According to Google Freebase Data Dumps, the full Freebase triples contain aroun
 
 Following the tutor's suggestion, Freebase should be deployed locally via Virtuoso. If the full dump cannot be deployed due to resource limitations, a partial dump can be used. In that case, the benchmark must be filtered so that only questions answerable by the partial KG are evaluated.
 
+## Partial Dump Alternative
+
+If full Freebase deployment is infeasible, the following partial-KG procedure should be used:
+
+1. Select the target benchmark, e.g. WebQSP or CWQ.
+2. Extract seed entities from the questions, including topic entities and gold answer MIDs.
+3. Construct a partial Freebase dump around these entities, for example by keeping 1-hop or 2-hop neighboring triples and required CVT nodes.
+4. Import the partial dump into Virtuoso.
+5. Test each benchmark question against the local SPARQL endpoint.
+6. Keep only questions whose answers can be found in the partial KG.
+7. Report the number of retained questions and mark the results as partial-KG results.
+
+Results from this setting should not be directly compared with the original full-Freebase results.
+
+
 ## Setup
 
 ### Data Preprocessing
