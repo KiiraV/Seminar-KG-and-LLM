@@ -26,17 +26,12 @@ GoG/
 
 └── test.py
 
----
-
 ## test.py
-
 ### Purpose
 
 The file `test.py` is not part of the main GoG reasoning pipeline.
 
 Its purpose is to verify whether the Freebase SPARQL endpoint is properly configured.
-
----
 
 ### Functionality
 
@@ -48,19 +43,15 @@ The script:
 4. Prints returned results
 5. Reports configuration errors
 
----
-
 ### Observations
 
 The official implementation relies heavily on:
 
-* SPARQL queries
-* Freebase knowledge graph
-* Virtuoso database service
+- SPARQL queries
+- Freebase knowledge graph
+- Virtuoso database service
 
 This indicates that graph retrieval is performed through direct knowledge graph querying rather than static files.
-
----
 
 ## Freebase Dependency
 
@@ -76,11 +67,9 @@ Filtered Dataset:
 
 Required Infrastructure:
 
-* OpenLink Virtuoso
-* SPARQL Endpoint
-* RDF Import Pipeline
-
----
+- OpenLink Virtuoso
+- SPARQL Endpoint
+- RDF Import Pipeline
 
 ## Initial Understanding of GoG Pipeline
 
@@ -134,18 +123,3 @@ Answer
 
 Further analysis of src/GoG.py is required to confirm the exact implementation.
 
-### test.py
-
-Purpose:
-Check whether the Freebase SPARQL endpoint is available.
-
-Observations:
-
-- Loads SPARQLPATH from .env
-- Uses SPARQLWrapper
-- Executes a sample Freebase query
-- Not the main GoG pipeline
-
-Conclusion:
-
-The official implementation relies on a Freebase SPARQL endpoint.
