@@ -1,12 +1,7 @@
-# Issue 1
+## Full Freebase Deployment Limitation
 
-## Freebase Dump Access and Resource Limitation
+The main reimplementation bottleneck is the Freebase setup. The original implementation requires a local Virtuoso deployment over the full Freebase dump. According to Google Freebase Data Dumps, the full Freebase triples contain approximately 1.9 billion triples, about 22 GB compressed and 250 GB uncompressed.
 
-The original implementation assumes access to a full local Freebase deployment. During reimplementation, the original download instruction was found to be insufficient because the linked Freebase resource is a deprecated historical dump page rather than a complete runnable setup package.
+Due to storage and computation limitations, I cannot deploy the complete Freebase dump locally. Therefore, I follow the partial-dump strategy suggested by the tutor: deploy a partial Freebase dump through Virtuoso and filter the benchmark to retain only questions answerable by this partial KG.
 
-The tutor clarified that Freebase must be deployed locally with Virtuoso. If full deployment is not possible, a partial dump may be used, but the benchmark must be filtered to questions answerable by that partial dump.
-
-Impact:
-- Full reproduction requires high storage and long import time.
-- Partial reproduction changes the evaluation set.
-- Reported results must clearly state whether they use full Freebase or a filtered partial KG.
+This changes the evaluation setting. The results should be interpreted as partial-KG reimplementation results, not as a direct reproduction of the original full-Freebase results.
