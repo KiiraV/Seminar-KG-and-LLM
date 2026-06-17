@@ -11,7 +11,9 @@
 
 The original Freebase setup instruction points to the Google Freebase data dump page. However, the link does not provide a simple one-click dataset download workflow for this reimplementation. The Freebase API has been shut down, and the available dump is a historical archive.
 
-According to Google Freebase Data Dumps, the full Freebase triples contain around 1.9 billion triples, with approximately 22 GB compressed and 250 GB uncompressed data. Therefore, reproducing the original setting requires a local Virtuoso deployment and substantial storage/time resources.
+The original GoG implementation assumes a local Virtuoso endpoint over the full Freebase dump. However, deploying the full Freebase dump is resource-intensive. The official Freebase triples contain around 1.9 billion triples, about 22 GB compressed and 250 GB uncompressed.
+
+Due to local resource limitations, this reimplementation uses a partial Freebase dump instead of the full dump.
 
 ### Updated Reimplementation Decision
 
@@ -19,7 +21,7 @@ Following the tutor's suggestion, Freebase should be deployed locally via Virtuo
 
 ## Partial Dump Alternative
 
-If full Freebase deployment is infeasible, the following partial-KG procedure should be used:
+Because Freebase deployment is infeasible, the following partial-KG procedure should be used:
 
 1. Select the target benchmark, e.g. WebQSP or CWQ.
 2. Extract seed entities from the questions, including topic entities and gold answer MIDs.
@@ -30,7 +32,6 @@ If full Freebase deployment is infeasible, the following partial-KG procedure sh
 7. Report the number of retained questions and mark the results as partial-KG results.
 
 Results from this setting should not be directly compared with the original full-Freebase results.
-
 
 ## Setup
 
