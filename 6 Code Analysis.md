@@ -1,4 +1,4 @@
-# GoG Code Analysis
+# Code Analysis
 
 ## Official Repository
 
