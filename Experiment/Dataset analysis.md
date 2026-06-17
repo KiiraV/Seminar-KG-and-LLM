@@ -42,6 +42,13 @@ Neighborhood Retrieval: We extracted the immediate 1-hop and 2-hop neighbors for
 
 Connectivity Verification: We ensured that before the simulation of incompleteness, the answer entities were reachable via SPARQL queries within our local Virtuoso Docker container.
 
+### Partial-KG Benchmark Filtering
+
+| Dataset | Original test size | Retained answerable questions | Retention rate | KG setting |
+|---|---:|---:|---:|---|
+| WebQSP | 1,639 | TBD | TBD | Partial Freebase |
+| CWQ | 3,531 | TBD | TBD | Partial Freebase |
+
 ## 4. Dataset Statistics
 The following table provides the statistics for the subset used in this reimplementation:
 Metric
