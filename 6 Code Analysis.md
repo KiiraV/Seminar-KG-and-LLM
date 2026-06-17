@@ -4,7 +4,7 @@
 
 https://github.com/YaooXu/GoG
 
-# Repository Structure
+## Repository Structure
 
 GoG/
 
@@ -28,9 +28,9 @@ GoG/
 
 ---
 
-# test.py
+## test.py
 
-## Purpose
+### Purpose
 
 The file `test.py` is not part of the main GoG reasoning pipeline.
 
@@ -38,7 +38,7 @@ Its purpose is to verify whether the Freebase SPARQL endpoint is properly config
 
 ---
 
-## Functionality
+### Functionality
 
 The script:
 
@@ -50,7 +50,7 @@ The script:
 
 ---
 
-## Observations
+### Observations
 
 The official implementation relies heavily on:
 
@@ -62,7 +62,7 @@ This indicates that graph retrieval is performed through direct knowledge graph 
 
 ---
 
-# Freebase Dependency
+## Freebase Dependency
 
 According to the official documentation:
 
@@ -82,7 +82,7 @@ Required Infrastructure:
 
 ---
 
-# Initial Understanding of GoG Pipeline
+## Initial Understanding of GoG Pipeline
 
 Paper Workflow:
 
@@ -134,7 +134,7 @@ Answer
 
 Further analysis of src/GoG.py is required to confirm the exact implementation.
 
-## test.py
+### test.py
 
 Purpose:
 Check whether the Freebase SPARQL endpoint is available.
