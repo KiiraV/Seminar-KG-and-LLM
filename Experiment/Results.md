@@ -1,1 +1,1 @@
-
+The following results are obtained under a partial-KG setting. Since the benchmark was filtered according to the answerability of the partial Freebase dump, these numbers are not directly comparable to the original GoG paper.
