@@ -2,17 +2,20 @@
 
 ## Requirements
 
-- OpenLink Virtuoso 7.2.5 (download from this public link)
+- OpenLink Virtuoso 7.2.5 
 - Python 3
-- Freebase dump from this public link
+- Freebase dump
 
-### Issue log
+### Data Availability Issue
 `Reimplementation/issues.md`
 
+The original Freebase setup instruction points to the Google Freebase data dump page. However, the link does not provide a simple one-click dataset download workflow for this reimplementation. The Freebase API has been shut down, and the available dump is a historical archive.
 
-Modification: Replaced the description of the original link in the "Requirements" section (or the part concerning the Freebase dump).
+According to Google Freebase Data Dumps, the full Freebase triples contain around 1.9 billion triples, with approximately 22 GB compressed and 250 GB uncompressed data. Therefore, reproducing the original setting requires a local Virtuoso deployment and substantial storage/time resources.
 
-Addition: A "partial deployment" strategy was adopted due to the original Google link becoming invalid ("Access Denied") and hardware resource constraints (limited disk space and loading time). This explains the specific source of the triplet subset I used (obtained from the paper's official `data`  directory).
+### Updated Reimplementation Decision
+
+Following the tutor's suggestion, Freebase should be deployed locally via Virtuoso. If the full dump cannot be deployed due to resource limitations, a partial dump can be used. In that case, the benchmark must be filtered so that only questions answerable by the partial KG are evaluated.
 
 ## Setup
 
