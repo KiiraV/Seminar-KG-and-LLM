@@ -6,6 +6,14 @@
 - Python 3
 - Freebase dump from this public link
 
+### Issue log
+`Reimplementation/issues.md`
+
+
+Modification: Replaced the description of the original link in the "Requirements" section (or the part concerning the Freebase dump).
+
+Addition: A "partial deployment" strategy was adopted due to the original Google link becoming invalid ("Access Denied") and hardware resource constraints (limited disk space and loading time). This explains the specific source of the triplet subset I used (obtained from the paper's official `data/` directory).
+
 ## Setup
 
 ### Data Preprocessing
