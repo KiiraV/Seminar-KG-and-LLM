@@ -3,10 +3,26 @@
 ## 1. Benchmark Overview
 The Generate-on-Graph (GoG) framework is evaluated on two widely recognized Knowledge Graph Question Answering (KGQA) benchmarks, both of which utilize Freebase as the underlying knowledge source:
 
+### WebQSP
+
 WebQuestionsSP (WebQSP): A dataset consisting of questions that are answerable through semantic parsing, primarily focusing on 1-hop and 2-hop reasoning paths.
+
+Characteristics:
+
+- Single-hop and multi-hop questions
+- Entity-centric reasoning
+- Relatively simple reasoning chains
+
+### CWQ
 
 Complex WebQuestion (CWQ): A more challenging benchmark built upon WebQuestions, requiring multi-hop reasoning, constraints, and compositions.
 
+Characteristics:
+
+- Multi-hop reasoning
+- Constraint filtering
+- Complex relation composition
+- 
 For the purpose of this seminar and to manage computational costs, the evaluation focuses on a randomly selected subset of 1,000 samples from these benchmarks.
 
 ## 2. Construction of the IKGQA Task
