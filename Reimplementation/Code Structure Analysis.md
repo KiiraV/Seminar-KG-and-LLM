@@ -50,6 +50,10 @@ as strict exact match.
 
 ## Engineering additions
 
+The following additions describe the experimental checkout. Reusable source
+files are published under `gog_partial_setup/` and `gog_formal_setup/`.
+Generated graphs, model volumes, and Virtuoso database files are excluded.
+
 | Addition | Purpose |
 |---|---|
 | `Makefile.partial` | deterministic engineering demo |
@@ -59,6 +63,11 @@ as strict exact match.
 | `check_answerability.py` | strict gold-SPARQL retention after construction |
 | `build_bm25_partial.py` | graph-specific entity-linking index |
 | `summarize_results.py` | hashes, per-question results, and metric evidence |
+
+The reproducible procedure is documented in the
+[partial setup guide](Partial%20Setup%20Guide.md) and
+[formal pilot guide](Formal%20Pilot%20Guide.md). The official GoG source code
+remains available from [YaooXu/GoG](https://github.com/YaooXu/GoG).
 
 ## Data-flow summary
 
