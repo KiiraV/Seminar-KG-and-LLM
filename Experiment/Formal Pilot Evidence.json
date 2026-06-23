@@ -1,0 +1,37 @@
+{
+  "generated_at_utc": "2026-06-22T13:11:30.785413+00:00",
+  "scope": "small-scale formal partial-Freebase pilot",
+  "data_source": "https://qlever.dev/api/freebase",
+  "selection": {
+    "frozen_questions": 10,
+    "resource_eligible_questions": 9,
+    "degree_cap": 10000,
+    "excluded_for_degree": [
+      "WebQTest-1637"
+    ],
+    "gold_sparql_answerable_questions": 6
+  },
+  "graph": {
+    "model_entities": 4536,
+    "model_triples": 47523,
+    "bm25_names": 12640
+  },
+  "model": {
+    "name": "qwen2.5:7b",
+    "runtime": "Ollama in Docker",
+    "ollama_model_id": "845dbda0ea48",
+    "temperature": 0.0
+  },
+  "result": {
+    "correct": 2,
+    "evaluated": 6,
+    "relaxed_answer_match": 0.3333333333333333
+  },
+  "metric_note": "The upstream evaluator calls this Exact Match, but it counts a question as correct when any normalized prediction/answer string contains the other. It is reported here as relaxed answer match.",
+  "sha256": {
+    "model_graph": "90705bb3ac681b2f9111a7115e149e9a01adfc354ec524a6d3b009202ab2f815",
+    "dataset": "314d340fb8f1857288591ebf45c7f818743e88c384f3eaa6087642e1ef37916c",
+    "bm25": "e7258165b6be75f4e8b664b4534e466e8dc20f8d9095d167c30ecdc4d8a4f00d",
+    "predictions": "31a9fece7cbc09655d2f085bdfb976486c21d1ffbfa28fea703d5f6f8b02677e"
+  }
+}
