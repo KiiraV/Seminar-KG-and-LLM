@@ -1,87 +1,66 @@
 # Dataset Analysis: WebQSP and CWQ under Incomplete KG
 
-## 1. Benchmark Overview
-The Generate-on-Graph (GoG) framework is evaluated on two widely recognized Knowledge Graph Question Answering (KGQA) benchmarks, both of which utilize Freebase as the underlying knowledge source:
+## Benchmark Overview
 
-### WebQSP
+The GoG paper uses two Freebase-based KGQA benchmarks:
 
-WebQuestionsSP (WebQSP): A dataset consisting of questions that are answerable through semantic parsing, primarily focusing on 1-hop and 2-hop reasoning paths.
+- **WebQSP:** primarily one-hop and two-hop questions with executable SPARQL
+  annotations.
+- **ComplexWebQuestions (CWQ):** compositional questions requiring multi-hop
+  reasoning, constraints, and aggregation.
 
-Characteristics:
+The paper samples 1,000 questions from each dataset for IKGQA evaluation. The
+local first target is the provided 1,000-question WebQSP IKG-20% file.
 
-- Single-hop and multi-hop questions
-- Entity-centric reasoning
-- Relatively simple reasoning chains
+## Paper's IKG Construction
 
-### CWQ
+The paper identifies triples on each gold relation path and drops them with
+probabilities of 20%, 40%, 60%, or 80%. When a crucial triple is dropped, the
+relations between the same entity pair are also removed. This prevents a
+system from reaching the answer through an equivalent edge.
 
-Complex WebQuestion (CWQ): A more challenging benchmark built upon WebQuestions, requiring multi-hop reasoning, constraints, and compositions.
+## Local Partial-Dump Setting
 
-Characteristics:
+The local experiment introduces a second form of incompleteness: only a
+resource-bounded region of Freebase is deployed. The formal procedure is:
 
-- Multi-hop reasoning
-- Constraint filtering
-- Complex relation composition
-- 
-For the purpose of this seminar and to manage computational costs, the evaluation focuses on a randomly selected subset of 1,000 samples from these benchmarks.
+1. Freeze a subset of WebQSP question IDs.
+2. Extract topic and answer MIDs.
+3. construct a one-hop partial graph from an independent Freebase RDF dump;
+4. include names, types, aliases, and necessary CVT connections;
+5. load the graph into Virtuoso;
+6. retain questions whose required entities are represented;
+7. run GoG on the retained benchmark.
 
-## 2. Construction of the IKGQA Task
-Unlike conventional KGQA, which assumes a complete Knowledge Graph (CKG), the Incomplete Knowledge Graph Question Answering (IKGQA) task simulates real-world scenarios where factual links are missing.
+## Current Dataset Checkpoint
 
-Incompleteness Simulation (Algorithm 1)
+| Metric | Value | Interpretation |
+|---|---:|---|
+| WebQSP IKG-20% source questions | 1,000 | Official processed file |
+| Demo questions selected | 20 | First 20 examples |
+| Extracted seed MIDs | 124 | Topic and answer entities |
+| Demo graph triples | 217 | Pipeline test only |
+| Entity-covered demo questions | 20 | Weaker diagnostic |
+| Strict gold-SPARQL answerable questions | 6 | Demo execution check |
+| BM25 entity names | 123 | Built from the demo graph |
 
-To construct the Incomplete Knowledge Graphs (IKGs), we follow the paper’s methodology of randomly dropping crucial triples from the Gold Relation Path:
+The demo graph uses benchmark-provided `mid_crucial_triples`. All 20 questions
+have entity coverage, but only 6 gold SPARQL queries return a recorded answer.
+Neither figure is a formal retention result because the graph contains gold
+information.
 
-Identify the gold relation path w 
-g
-​	
-  for each question.
+## Formal Result Table
 
-Apply a drop probability p (e.g., 20%, 40%, 60%, 80%) to each triple in the path.
-Strict Deletion Rule: When a triple is dropped, all existing relations between those two entities are removed to ensure the model cannot "cheat" by finding an alternative edge, forcing the LLM to rely on its inherent knowledge.
-
-## 3. Reimplementation Strategy: The Partial Dump
-Due to significant technical obstacles and hardware limitations, this reimplementation utilizes a Partial Dump strategy rather than the full 250GB Freebase dataset.
-
-Technical Obstacles
-
-Access Constraints: The official Google Cloud Storage link for the full Freebase RDF dump (freebase-rdf-latest.gz) returned an 'Access Denied' error, as the public hosting has been restricted by the provider.
-
-Hardware Limitations: Deploying the full Freebase instance via Virtuoso requires substantial memory (often >32GB RAM for indexing) and storage, which exceeds the specifications of the local MacBook Air M4 environment.
-Extraction Methodology
-
-To maintain the integrity of the experiment while working within these constraints, we followed the tutor's recommendation to extract an "answerable" subset:
-
-Gold Path Extraction: We identified a subset of questions (e.g., 100 samples) and retrieved the triples belonging to their Gold Relation Paths from available repository fragments.
-
-Neighborhood Retrieval: We extracted the immediate 1-hop and 2-hop neighbors for each Topic Entity in these questions to provide sufficient context for the Search and Generate actions.
-
-Connectivity Verification: We ensured that before the simulation of incompleteness, the answer entities were reachable via SPARQL queries within our local Virtuoso Docker container.
-
-### Partial-KG Benchmark Filtering
-
-| Dataset | Original test size | Retained answerable questions | Retention rate | KG setting |
+| Dataset | Selected | Retained | Retention rate | Partial-KG policy |
 |---|---:|---:|---:|---|
-| WebQSP | 1,639 | TBD | TBD | Partial Freebase |
-| CWQ | 3,531 | TBD | TBD | Partial Freebase |
+| WebQSP pilot | 10 | 6 | 60.0% | independent one-hop Freebase neighborhood |
 
-## 4. Dataset Statistics
-The following table provides the statistics for the subset used in this reimplementation:
-Metric
-WebQSP (Subset)
-CWQ (Subset)
-Number of Samples
-[Your Count, e.g., 100]
-[Your Count, e.g., 100]
-Median Neighbor Nodes
-~427
-~26
-Avg. Edges Deleted (IKG-40%)
-~13.9
-~4.3
-Handling Isolated Entities
-To ensure the Searching action can be initiated, we explicitly filtered out samples where the Topic Entity became isolated (degree = 0) after triple deletion. This ensures that the LLM agent always has at least one starting point to "Think" and "Search" before being forced to "Generate".
+## Bias and Validity
 
-## 5. Supplementary Data: Wikidata Mapping
+Filtering by answerability changes the evaluation distribution. Accuracy on
+the retained set may overestimate performance on the original sample.
+Therefore, the final analysis will report both retained-set accuracy and
+coverage-adjusted accuracy.
 
-Where Freebase data was partially incomplete or missing mappings, we integrated Wikidata RDF patches as suggested in the setup documentation. This allows the model to map Freebase Machine Identifiers (MIDs) to Wikidata entities, enhancing the context available during the Verifying step of the Generate Action.
+No Wikidata patches have been added in the current implementation. If they are
+introduced later, their provenance and exact contribution must be documented.
