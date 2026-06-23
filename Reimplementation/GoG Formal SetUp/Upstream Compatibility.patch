@@ -1,0 +1,159 @@
+diff --git a/src/GoG.py b/src/GoG.py
+index 8637c0a..e1056d1 100644
+--- a/src/GoG.py
++++ b/src/GoG.py
+@@ -40,6 +40,7 @@ lock = Lock()
+ def answer_question_without_kg(env: FreeBaseEnv, prompt, args):
+     legal = False
+     n_retry = 0
++    output = None
+     while not legal:
+         n_retry += 1
+         if n_retry == 6:
+diff --git a/src/bm25_name2ids.py b/src/bm25_name2ids.py
+index aea8584..135ec29 100644
+--- a/src/bm25_name2ids.py
++++ b/src/bm25_name2ids.py
+@@ -231,7 +231,8 @@ class BM25Retrieve:
+     def load(
+         filepath="Freebase/virtuoso-opensource/database/FilterFreebase", re_process=False
+     ) -> "BM25Retrieve":
+-        pkl_path = "Freebase/bm25.pkl"
++        filepath = os.environ.get("FILTER_FREEBASE_PATH", filepath)
++        pkl_path = os.environ.get("BM25_PATH", "Freebase/bm25.pkl")
+         if os.path.exists(pkl_path) and not re_process:
+             print(f"loading bm25 from {pkl_path}")
+             with open(pkl_path, "rb") as f:
+@@ -292,7 +293,10 @@ def convert_name_to_id():
+
+
+ def retrieve_id2types_by_name(name):
+-    url = "http://localhost:18891/name2ids"
++    url = os.environ.get(
++        "BM25_SERVICE_URL",
++        "http://localhost:18891/name2ids",
++    )
+     data = {
+         "names": [name],
+     }
+@@ -304,4 +308,4 @@ def retrieve_id2types_by_name(name):
+ if __name__ == "__main__":
+     bm25 = BM25Retrieve.load()
+
+-    app.run(port=18891, host="0.0.0.0")
++    app.run(port=int(os.environ.get("BM25_PORT", "18891")), host="0.0.0.0")
+diff --git a/src/evaluate.py b/src/evaluate.py
+index b536b81..e02f95a 100644
+--- a/src/evaluate.py
++++ b/src/evaluate.py
+@@ -12,6 +12,10 @@ from utils import convert_jsonl_to_json
+ import argparse
+
+
++def safe_ratio(numerator, denominator):
++    return numerator / denominator if denominator else 0.0
++
++
+ def exact_match(response, answers):
+     clean_result = response.strip().lower()
+     for answer in answers:
+@@ -102,13 +106,18 @@ def eval_results(prediction_pathfile):
+
+     # print(wrong)
+     # print(prediction_pathfile)
+-    print("Exact Match: {}".format(float(num_right / len(output_datas))))
+-    print(f"Empty reasoning_chain: {empty_rc}, {empty_rc / len(output_datas)}")
++    print("Exact Match: {}".format(safe_ratio(num_right, len(output_datas))))
++    print(
++        f"Empty reasoning_chain: {empty_rc}, "
++        f"{safe_ratio(empty_rc, len(output_datas))}"
++    )
+     print(
+-        f"Empty reasoning_chain correct: {empty_rc_correct}, {empty_rc_correct / num_right}, {empty_rc_correct / empty_rc}"
++        f"Empty reasoning_chain correct: {empty_rc_correct}, "
++        f"{safe_ratio(empty_rc_correct, num_right)}, "
++        f"{safe_ratio(empty_rc_correct, empty_rc)}"
+     )
+     print("right: {}, error: {}".format(num_right, num_error))
+-    print(num_gen, num_gen_correct / num_gen)
++    print(num_gen, safe_ratio(num_gen_correct, num_gen))
+
+
+ if __name__ == "__main__":
+diff --git a/src/llms/interface.py b/src/llms/interface.py
+index 05eb2a0..04d4fa7 100644
+--- a/src/llms/interface.py
++++ b/src/llms/interface.py
+@@ -17,11 +17,16 @@ def run_llm(
+     stream=False,
+     n=1,
+ ):
+-    client = openai.OpenAI(
+-        base_url=os.environ['base_url'],
+-        api_key=os.environ['opeani_api_keys'],
+-        http_client=httpx.Client(proxies=os.environ['custom_proxy']) if 'custom_proxy' in os.environ else None,
+-    )
++    modern_client = hasattr(openai, "OpenAI")
++    if modern_client:
++        client = openai.OpenAI(
++            base_url=os.environ['base_url'],
++            api_key=os.environ['opeani_api_keys'],
++            http_client=httpx.Client(proxies=os.environ['custom_proxy']) if 'custom_proxy' in os.environ else None,
++        )
++    else:
++        openai.api_base = os.environ["base_url"]
++        openai.api_key = os.environ["opeani_api_keys"]
+
+     messages = [
+         {"role": "system", "content": "You are an AI assistant that answers complex questions."}
+@@ -32,12 +37,11 @@ def run_llm(
+     if stop and type(stop) is str:
+         stop = [stop]
+
+-    f = 0
+-    while f == 0:
++    for attempt in range(6):
+         try:
+             if len(encoding.encode(prompt)) >= 4096:
+                 raise RuntimeError("maximum context length of prompt")
+-            response = client.chat.completions.create(
++            request_args = dict(
+                 model=engine,
+                 messages=messages,
+                 temperature=temperature,
+@@ -46,7 +50,17 @@ def run_llm(
+                 stream=stream,
+                 n=n,
+             )
+-            results = [response.choices[i].message.content for i in range(n)]
++            if modern_client:
++                response = client.chat.completions.create(**request_args)
++                results = [
++                    response.choices[i].message.content for i in range(n)
++                ]
++            else:
++                response = openai.ChatCompletion.create(**request_args)
++                results = [
++                    response["choices"][i]["message"]["content"]
++                    for i in range(n)
++                ]
+
+             if stop:
+                 stop = stop[0]
+@@ -55,12 +69,14 @@ def run_llm(
+                         result = result.split(stop)[0]
+                     results[i] = result
+
+-            f = 1
++            break
+         except Exception as e:
+             if "maximum context length" in str(e):
+                 logger.error(f"{e}")
+                 return None
+-            logger.error(f"{e}, openai error, retry")
++            logger.error(f"{e}, openai error, retry {attempt + 1}/6")
++            if attempt == 5:
++                raise
+             time.sleep(5)
+     if n == 1:
+         return results[0]
