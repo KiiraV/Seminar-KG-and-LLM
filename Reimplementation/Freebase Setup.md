@@ -108,14 +108,19 @@ curl -X POST http://127.0.0.1:18891/name2ids \
 
 The verified response contained MID `m.078w2` and type `people.person`.
 
-## Full Command Sequence
+## Full Procedure
 
-The authoritative runnable guide is in the adjacent GoG checkout:
+This repository publishes the procedure and recorded evidence, but not the
+machine-specific generated graph or Virtuoso database. Use these guides
+together with a clean checkout of the official GoG repository:
 
-```text
-GoG/RUN_PARTIAL.md
-GoG/formal_partial_experiment/README.md
-```
+- [Partial-Freebase engineering guide](Partial%20Setup%20Guide.md)
+- [Formal pilot guide](Formal%20Pilot%20Guide.md)
+- [Reproduction checklist](Reproduction%20Checklist.md)
+
+All paths shown above are relative to the root of the GoG checkout. The
+`127.0.0.1` addresses refer to services running on the reader's own machine;
+they are not public download links.
 
 ## Sources
 
