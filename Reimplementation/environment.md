@@ -4,11 +4,6 @@
 - Editor: VSCode
 - Python environment: project-local `.venv` using Python 3.9
 - KG database: Virtuoso running through Docker
-- GoG workspace:
-
-```text
-/Users/kiira/Documents/Codex/2026-06-17/readme-md-https-github-com-yaooxu/GoG
-```
 
 ## Required Services
 
