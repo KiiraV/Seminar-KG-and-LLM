@@ -13,8 +13,8 @@ with the architecture and then choose the engineering or formal track.
 6. [Environment](Environment.md)
 7. [Results](Results.md)
 8. [Issues and limitations](Issues.md)
-9. [Reproduction checklist](Reproduction%20Checklist.md)
-10. [Reproduction audit](Reproduction%20Audit.md)
+9. [Reimplementation checklist](Reimplementation%20Checklist.md)
+10. [Reimplementation audit](Reimplementational%20Audit.md)
 
 ## Two-track design
 
