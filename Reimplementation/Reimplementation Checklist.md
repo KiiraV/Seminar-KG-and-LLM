@@ -1,5 +1,3 @@
-# Reproduction Checklist
-
 ## Repository and Environment
 
 - [x] Clone the official GoG repository.
