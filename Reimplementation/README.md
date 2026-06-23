@@ -46,7 +46,3 @@ Large or machine-specific artifacts are intentionally excluded:
 The official reasoning implementation remains available from
 [YaooXu/GoG](https://github.com/YaooXu/GoG).
 
-Reusable additions:
-
-- [`gog_partial_setup/`](GoG_Partial_SetUp/)
-- [`gog_formal_setup/`](GoG_Formal_SetUp/)
