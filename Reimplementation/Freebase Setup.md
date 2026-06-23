@@ -22,9 +22,6 @@ that evaluation includes only questions answerable by that partial graph.
 ## Local Paths
 
 ```text
-GoG repository:
-/Users/kiira/Documents/Codex/2026-06-17/readme-md-https-github-com-yaooxu/GoG
-
 Partial graph:
 GoG/Freebase/virtuoso-opensource/database/FilterFreebase
 
