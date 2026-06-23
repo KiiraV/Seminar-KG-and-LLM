@@ -4,122 +4,55 @@
 
 https://github.com/YaooXu/GoG
 
-## Repository Structure
+## Main Execution Path
 
-GoG/
+| File | Responsibility |
+|---|---|
+| `src/GoG.py` | CLI, dataset loading, reasoning loop, output, evaluation |
+| `src/environment.py` | Search, Generate, Verify, relation filtering |
+| `src/kb_interface/freebase_func.py` | SPARQL queries and graph conversion |
+| `src/bm25_name2ids.py` | Entity-name retrieval and Flask service |
+| `src/llms/interface.py` | LLM API abstraction |
+| `src/evaluate.py` | Exact-match-style evaluation |
+| `prompts_v2/` | Agent and primitive-task prompts |
 
-├── CoT/
+## Runtime Flow
 
-├── Freebase/
+1. `GoG.py` loads a JSON benchmark.
+2. It creates `FreeBaseEnv` with topic entities and the question.
+3. The LLM emits a Thought and Action.
+4. `FreeBaseEnv.step()` dispatches Search or Generate.
+5. Search calls SPARQL and LLM relation filtering.
+6. Generate calls BM25 triple selection and LLM generation/verification.
+7. Each trace is written to a JSONL result file.
+8. The JSONL file is converted to JSON and evaluated.
 
-├── Wikidata/
+## Important Implementation Details
 
-├── prompts/
+- The reasoning loop is bounded to six iterations.
+- `Finish[unknown]` can trigger two-hop expansion.
+- `mid_crucial_triples` are filtered from retrieved triples to simulate an
+  incomplete KG.
+- The upstream environment variable is misspelled as `opeani_api_keys`; local
+  configuration must preserve this spelling.
+- The original `gpt-3.5-turbo-0613` backbone is no longer available, so a
+  modern run is a reimplementation rather than an exact model reproduction.
 
-├── prompts_v1/
+## External Services
 
-├── prompts_v2/
+- Virtuoso SPARQL endpoint: port 18890 in the local setup.
+- BM25 name-to-ID Flask service: port 18891.
+- OpenAI-compatible LLM endpoint: configured in `.env`.
 
-├── src/
+## Local Additions
 
-├── tools/
+The local GoG checkout adds:
 
-└── test.py
+- `docker-compose.virtuoso.yml`;
+- `.env.example`;
+- `requirements.partial.txt`;
+- `RUN_PARTIAL.md`;
+- helper scripts under `scripts_partial/`.
 
-## test.py
-### Purpose
-
-The file `test.py` is not part of the main GoG reasoning pipeline.
-
-Its purpose is to verify whether the Freebase SPARQL endpoint is properly configured.
-
-### Functionality
-
-The script:
-
-1. Loads environment variables from `.env`
-2. Reads the SPARQL endpoint path
-3. Sends a sample SPARQL query
-4. Prints returned results
-5. Reports configuration errors
-
-### Observations
-
-The official implementation relies heavily on:
-
-- SPARQL queries
-- Freebase knowledge graph
-- Virtuoso database service
-
-This indicates that graph retrieval is performed through direct knowledge graph querying rather than static files.
-
-## Freebase Dependency
-
-According to the official documentation:
-
-Raw Freebase Dump:
-
-* Approximately 400 GB
-
-Filtered Dataset:
-
-* Approximately 125 GB
-
-Required Infrastructure:
-
-- OpenLink Virtuoso
-- SPARQL Endpoint
-- RDF Import Pipeline
-
-## Initial Understanding of GoG Pipeline
-
-Paper Workflow:
-
-Question
-
-↓
-
-Thinking
-
-↓
-
-Searching
-
-↓
-
-Generating
-
-↓
-
-Verification
-
-↓
-
-Answer
-
-Code Mapping (Hypothesis):
-
-Question
-
-↓
-
-Entity Linking
-
-↓
-
-SPARQL Search
-
-↓
-
-LLM Generation
-
-↓
-
-Verification
-
-↓
-
-Answer
-
-Further analysis of src/GoG.py is required to confirm the exact implementation.
-
+These additions preserve the upstream reasoning code while making the
+partial-Freebase infrastructure reproducible.
