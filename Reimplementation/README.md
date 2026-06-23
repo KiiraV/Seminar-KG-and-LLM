@@ -48,5 +48,5 @@ The official reasoning implementation remains available from
 
 Reusable additions:
 
-- [`gog_partial_setup/`](gog_partial_setup/)
-- [`gog_formal_setup/`](gog_formal_setup/)
+- [`gog_partial_setup/`](GoG_Partial_SetUp/)
+- [`gog_formal_setup/`](GoG_Formal_SetUp/)
