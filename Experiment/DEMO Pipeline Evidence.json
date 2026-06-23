@@ -1,0 +1,25 @@
+{
+  "generated_at_utc": "2026-06-22T10:23:39.145001+00:00",
+  "scope": "demo infrastructure validation only",
+  "scientific_warning": "FilterFreebase was built from benchmark-provided crucial triples and must not be used for a formal model score.",
+  "counts": {
+    "seed_mids": 124,
+    "demo_triples": 217,
+    "strict_gold_sparql_questions": 6,
+    "bm25_bytes": 15471
+  },
+  "strict_question_ids": [
+    "WebQTest-1198",
+    "WebQTest-1637",
+    "WebQTest-1488",
+    "WebQTest-266",
+    "WebQTest-554",
+    "WebQTest-1441"
+  ],
+  "sha256": {
+    "seed_mids": "aba436b038147fbc2cadc6db0d3e0dcdf5ee0e8666b566dd17324ec8dc548b53",
+    "filter_freebase": "c003bd6ac0b35b87c5e8c1f683b9803ab5ad3b4d0fbcf30b5f088301ffcfd6d5",
+    "bm25": "4276c189f5142a146aa9ddf65fe5add0e2806fd36d3bebd2cdba26e3dbead5d1",
+    "strict_dataset": "120cf4d5215a5d23de04db9def388e05f75752716e4ca654b3117af2562aa6dc"
+  }
+}
