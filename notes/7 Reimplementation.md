@@ -1,3 +1,0 @@
-A key challenge in the reimplementation is the Freebase dependency. The original GoG system assumes access to a local Virtuoso endpoint containing the full Freebase dump. Since the full dump is too large for the available resources, I adopted a partial-KG setting.
-
-In this setting, I construct a partial Freebase dump, deploy it locally via Virtuoso, and filter the benchmark to retain only questions whose answers are available in the partial KG. This makes the experiment feasible, but it also changes the evaluation protocol. Therefore, the reported results should be interpreted as a resource-constrained reimplementation rather than a direct reproduction of the original full-Freebase setting.
