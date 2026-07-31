@@ -1,0 +1,69 @@
+PYTHON ?= .venv/bin/python
+DATASET ?= data/webqsp/data_with_ct_0.2.json
+LIMIT ?= 20
+SPARQL ?= http://127.0.0.1:18890/sparql
+PARTIAL_DATASET ?= data/webqsp_partial/data_with_ct_0.2_partial_answerable.json
+
+.PHONY: help virtuoso-up seed demo-kg import sparql filter bm25 name-service preflight demo stop
+
+help:
+	@printf '%s\n' \
+	  'make -f Makefile.partial demo          Run the non-LLM demo pipeline' \
+	  'make -f Makefile.partial name-service  Start BM25 service on port 18891' \
+	  'make -f Makefile.partial preflight     Check services and local LLM config' \
+	  'make -f Makefile.partial stop          Stop Virtuoso'
+
+virtuoso-up:
+	docker compose -f docker-compose.virtuoso.yml up -d
+
+seed:
+	$(PYTHON) scripts_partial/extract_seed_mids.py \
+	  --dataset $(DATASET) \
+	  --limit $(LIMIT) \
+	  --out data/webqsp_partial/seed_mids.txt
+
+demo-kg: seed
+	$(PYTHON) scripts_partial/build_demo_partial_from_dataset.py \
+	  --dataset $(DATASET) \
+	  --limit $(LIMIT) \
+	  --out Freebase/virtuoso-opensource/database/FilterFreebase
+
+import: virtuoso-up demo-kg
+	@printf 'Waiting for Virtuoso startup...\n'
+	@sleep 5
+	docker exec gog-virtuoso isql 1111 dba dba \
+	  exec="ld_dir('/opt/virtuoso-opensource/database', 'FilterFreebase', 'http://freebase.com'); rdf_loader_run(); checkpoint;"
+
+sparql: import
+	$(PYTHON) scripts_partial/test_sparql.py --mid m.078w2 --sparql $(SPARQL)
+
+filter: sparql
+	$(PYTHON) scripts_partial/check_answerability.py \
+	  --dataset $(DATASET) \
+	  --limit $(LIMIT) \
+	  --sparql $(SPARQL) \
+	  --mode sparql \
+	  --out $(PARTIAL_DATASET)
+
+bm25: demo-kg
+	$(PYTHON) scripts_partial/build_bm25_partial.py \
+	  --filter-freebase Freebase/virtuoso-opensource/database/FilterFreebase \
+	  --out Freebase/bm25.pkl
+
+name-service:
+	$(PYTHON) src/bm25_name2ids.py
+
+preflight:
+	$(PYTHON) scripts_partial/preflight.py
+
+demo: filter bm25
+	$(PYTHON) scripts_partial/write_audit_evidence.py \
+	  --dataset $(PARTIAL_DATASET) \
+	  --out results/demo_pipeline_evidence.json
+	@printf '\nDemo pipeline complete. Start the name service separately:\n'
+	@printf '  make -f Makefile.partial name-service\n'
+	@printf 'Then check infrastructure:\n'
+	@printf '  $(PYTHON) scripts_partial/preflight.py --skip-llm\n'
+
+stop:
+	docker compose -f docker-compose.virtuoso.yml down

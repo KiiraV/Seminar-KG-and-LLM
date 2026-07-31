@@ -1,0 +1,12 @@
+services:
+  virtuoso:
+    image: openlink/virtuoso-opensource-7:latest
+    container_name: gog-virtuoso
+    ports:
+      - "18890:8890"
+    environment:
+      DBA_PASSWORD: dba
+      SPARQL_UPDATE: "true"
+      DEFAULT_GRAPH: "http://freebase.com"
+    volumes:
+      - ./Freebase/virtuoso-opensource/database:/opt/virtuoso-opensource/database

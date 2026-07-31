@@ -1,0 +1,119 @@
+PYTHON ?= .venv/bin/python
+FORMAL_DIR := formal_partial_experiment
+FORMAL_DATA := $(FORMAL_DIR)/data
+SPARQL := http://127.0.0.1:18892/sparql
+GRAPH := http://freebase.com/formal
+QUESTIONS := $(FORMAL_DATA)/frozen_questions.json
+SEEDS := $(FORMAL_DATA)/graph_seeds.json
+RDF := $(FORMAL_DATA)/FormalFreebase.nt
+VIRTUOSO_RDF := $(FORMAL_DIR)/virtuoso_database/FormalFreebase.nt
+ANSWERABLE := $(FORMAL_DATA)/answerable_questions.json
+ELIGIBLE := $(FORMAL_DATA)/resource_eligible_questions.json
+ELIGIBLE_SEEDS := $(FORMAL_DATA)/resource_eligible_seeds.json
+MODEL_SEEDS := $(FORMAL_DATA)/model_graph_seeds.json
+MODEL_RDF := $(FORMAL_DATA)/ModelFreebase.nt
+MODEL_READY := $(FORMAL_DATA)/model_ready_questions.json
+BM25 := $(FORMAL_DATA)/bm25_formal.pkl
+
+.PHONY: freeze extract resource-filter up import filter model-graph model-import bm25 name-service preflight run stop
+
+freeze:
+	$(PYTHON) $(FORMAL_DIR)/freeze_questions.py \
+	  --dataset data/webqsp/webqsp_1000.json \
+	  --limit 10 \
+	  --questions-out $(QUESTIONS) \
+	  --seeds-out $(SEEDS)
+
+extract: freeze
+	$(PYTHON) $(FORMAL_DIR)/extract_qlever_freebase.py \
+	  --seeds $(SEEDS) \
+	  --out $(RDF) \
+	  --skip-metadata
+
+up:
+	docker compose -f docker-compose.formal.yml up -d
+
+import: extract up
+	mkdir -p $(FORMAL_DIR)/virtuoso_database
+	cp $(RDF) $(VIRTUOSO_RDF)
+	@sleep 5
+	docker exec gog-virtuoso-formal isql 1111 dba dba \
+	  exec="ld_dir('/opt/virtuoso-opensource/database', 'FormalFreebase.nt', '$(GRAPH)'); rdf_loader_run(); checkpoint;"
+
+resource-filter: extract
+	$(PYTHON) $(FORMAL_DIR)/apply_degree_cap.py \
+	  --questions $(QUESTIONS) \
+	  --one-hop $(FORMAL_DATA)/FormalFreebase.one_hop.nt \
+	  --cap 10000 \
+	  --questions-out $(ELIGIBLE) \
+	  --seeds-out $(ELIGIBLE_SEEDS)
+
+filter: import resource-filter
+	SPARQLPATH=$(SPARQL) $(PYTHON) scripts_partial/check_answerability.py \
+	  --dataset $(ELIGIBLE) \
+	  --limit 0 \
+	  --sparql $(SPARQL) \
+	  --mode sparql \
+	  --out $(ANSWERABLE)
+
+model-graph: filter
+	$(PYTHON) $(FORMAL_DIR)/prepare_model_checkpoint.py \
+	  --questions $(ANSWERABLE) \
+	  --one-hop $(FORMAL_DATA)/FormalFreebase.one_hop.nt \
+	  --out-prefix $(FORMAL_DATA)/ModelFreebase \
+	  --seeds-out $(MODEL_SEEDS)
+	$(PYTHON) -u $(FORMAL_DIR)/extract_qlever_freebase.py \
+	  --seeds $(MODEL_SEEDS) \
+	  --out $(MODEL_RDF) \
+	  --page-size 5000 \
+	  --metadata-chunk 100 \
+	  --request-delay 0.5
+
+model-import: model-graph up
+	cp $(MODEL_RDF) $(FORMAL_DIR)/virtuoso_database/ModelFreebase.nt
+	docker exec gog-virtuoso-formal isql 1111 dba dba \
+	  exec="SPARQL CLEAR GRAPH <$(GRAPH)>; ld_dir('/opt/virtuoso-opensource/database', 'ModelFreebase.nt', '$(GRAPH)'); rdf_loader_run(); checkpoint;"
+	SPARQLPATH=$(SPARQL) $(PYTHON) scripts_partial/check_answerability.py \
+	  --dataset $(ANSWERABLE) \
+	  --limit 0 \
+	  --sparql $(SPARQL) \
+	  --mode sparql \
+	  --out $(MODEL_READY)
+
+bm25: model-graph
+	SPARQLPATH=$(SPARQL) $(PYTHON) scripts_partial/build_bm25_partial.py \
+	  --filter-freebase $(MODEL_RDF) \
+	  --out $(BM25)
+
+name-service:
+	SPARQLPATH=$(SPARQL) \
+	FILTER_FREEBASE_PATH=$(MODEL_RDF) \
+	BM25_PATH=$(BM25) \
+	BM25_PORT=18893 \
+	$(PYTHON) src/bm25_name2ids.py
+
+preflight:
+	SPARQLPATH=$(SPARQL) \
+	base_url=http://127.0.0.1:11434/v1 \
+	opeani_api_keys=ollama \
+	$(PYTHON) scripts_partial/preflight.py \
+	  --dataset $(MODEL_READY) \
+	  --filter-freebase $(MODEL_RDF) \
+	  --bm25 $(BM25) \
+	  --name-service http://127.0.0.1:18893/name2ids
+
+run:
+	SPARQLPATH=$(SPARQL) \
+	BM25_SERVICE_URL=http://127.0.0.1:18893/name2ids \
+	base_url=http://127.0.0.1:11434/v1 \
+	opeani_api_keys=ollama \
+	$(PYTHON) src/GoG.py \
+	  --n_process=1 \
+	  --dataset $(MODEL_READY) \
+	  --LLM_type qwen2.5:7b \
+	  --temperature 0 \
+	  --output_dir $(FORMAL_DIR)/results \
+	  --force
+
+stop:
+	docker compose -f docker-compose.formal.yml down

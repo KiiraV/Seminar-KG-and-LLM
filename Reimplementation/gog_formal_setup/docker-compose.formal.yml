@@ -1,0 +1,12 @@
+services:
+  virtuoso-formal:
+    image: openlink/virtuoso-opensource-7:latest
+    container_name: gog-virtuoso-formal
+    ports:
+      - "18892:8890"
+    environment:
+      DBA_PASSWORD: dba
+      SPARQL_UPDATE: "true"
+      DEFAULT_GRAPH: "http://freebase.com/formal"
+    volumes:
+      - ./formal_partial_experiment/virtuoso_database:/opt/virtuoso-opensource/database

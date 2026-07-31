@@ -1,0 +1,7 @@
+-r requirements.txt
+python-dotenv
+loguru
+datasets
+spacy==3.7.5
+FlagEmbedding
+tiktoken
