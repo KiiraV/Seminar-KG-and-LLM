@@ -1,4 +1,4 @@
-# GitHub Submission Manifest - 31 July 2026
+# GitHub Submission Manifest
 
 This manifest defines the clean code-submission subset for the seminar
 repository. It should be used when preparing the final GitHub upload.
