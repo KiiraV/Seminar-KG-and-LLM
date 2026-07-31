@@ -7,104 +7,93 @@ reimplementation of:
 > Incomplete Knowledge Graph Question Answering*. EMNLP 2024.
 
 The project analyzes the GoG method, maps the paper to the official code, and
-builds a locally runnable partial-Freebase pipeline with Docker, Virtuoso,
-SPARQL, and BM25 entity linking.
+evaluates a small WebQSP pilot on a partial Freebase graph.
 
-## Reimplementation scope
+## Scope
 
-The original system assumes a local Virtuoso deployment over Freebase. A full
-deployment is not practical on the available laptop, so this project follows a
-partial-KG protocol:
+The original implementation assumes a local Virtuoso deployment containing
+Freebase. A full deployment was outside the available hardware budget, so this
+project uses two clearly separated tracks:
 
-1. Select a WebQSP subset.
-2. Extract topic and answer entity MIDs.
-3. Build a partial Freebase graph around those seeds.
-4. Load the graph into Virtuoso.
-5. Retain only questions answerable by that graph.
-6. Rebuild the BM25 entity-linking index.
-7. Run GoG and report the retained set and model configuration.
+1. **Engineering validation:** a small graph built from benchmark-provided
+   triples verifies Docker, Virtuoso, SPARQL, BM25, and the GoG interfaces.
+   Because this graph contains gold information, it is not used for scoring.
+2. **Formal pilot:** question IDs are frozen before an independent one-hop
+   graph is retrieved from QLever Freebase. Only questions answerable on that
+   graph are evaluated.
 
-This is a resource-constrained reimplementation, not a direct reproduction of
-the paper's full-Freebase experiment.
+This is a resource-constrained reimplementation, not a numerical reproduction
+of the paper's full-Freebase experiment.
 
-## Current verified status
+## Recorded result
 
-| Component | Status | Evidence |
-|---|---|---|
-| Python environment | Complete | All GoG imports and spaCy vectors load |
-| Virtuoso in Docker | Complete | SPARQL endpoint responds on port 18890 |
-| Dataset preprocessing | Complete | 124 seed MIDs extracted from 20 WebQSP examples |
-| Demo partial KG | Complete | 217 triples imported |
-| Entity-coverage diagnostic | Complete | 20/20 demo questions covered |
-| Strict gold-SPARQL filter | Complete | 6/20 demo questions executable |
-| BM25 index | Complete | 123 entity names indexed |
-| Name-to-ID service | Complete | Successful typed MID response on port 18891 |
-| Formal partial Freebase | Complete pilot | 47,523 triples independently retrieved from QLever |
-| LLM inference | Complete pilot | Local Qwen2.5 7B via Ollama |
-| Formal pilot result | Complete | 2/6 relaxed answer match |
+| Measurement | Value |
+|---|---:|
+| Frozen WebQSP questions | 10 |
+| Resource-eligible questions | 9 |
+| Answerable questions | 6 |
+| Model graph | 47,523 triples / 4,536 entities |
+| BM25 index | 12,640 names |
+| Model | Qwen2.5 7B via Ollama |
+| Relaxed answer match | 2/6 (33.3%) |
+| Coverage-adjusted result | 2/10 (20.0%) |
 
-The 20-question demo graph is built from benchmark-provided crucial triples.
-It proves that the infrastructure works, but it contains gold information and
-must not be reported as an experimental score.
+The six-question result demonstrates that the complete workflow can be run and
+audited. It is too small to estimate full WebQSP performance or to compare
+directly with the paper's reported scores.
 
 ## Repository guide
 
 | Path | Content |
 |---|---|
-| [`Report/Seminar report.md`](Report/Seminar%20report.md) | Complete English report draft |
-| [`Report/latex/`](Report/latex/) | Compile-ready LaTeX report template and bibliography |
-| [`presentation/GoG_Seminar_Presentation.pptx`](presentation/GoG_Seminar_Presentation.pptx) | Rendered 12-slide English seminar deck |
-| [`presentation/GoG_Seminar_Speaker_Script.pdf`](presentation/GoG_Seminar_Speaker_Script.pdf) | Print/iPad speaker manuscript with Q&A |
-| [`presentation/Presentation Outline.md`](presentation/Presentation%20Outline.md) | English slide structure and speaking points |
-| [`notes/`](notes/) | Paper-reading notes by section |
-| [`Reimplementation/`](Reimplementation/) | Environment, Freebase setup, issues, and reproducibility status |
-| [`Reimplementation/Code Structure Analysis.md`](Reimplementation/Code%20Structure%20Analysis.md) | Official code and local patch mapping |
-| [`Experiment/`](Experiment/) | Dataset protocol and result templates |
-| [`Experiment/Formal Partial Experiment.md`](Experiment/Formal%20Partial%20Experiment.md) | Independent pilot: 2/6 relaxed answer match |
-| [`Reference/Paper.pdf`](Reference/Paper.pdf) | Official arXiv paper |
-| [`Seminar Traceability Matrix.md`](Seminar%20Traceability%20Matrix.md) | Requirement-to-evidence mapping |
-| [`Repository Maintenance.md`](Repository%20Maintenance.md) | Git and update workflow |
-| [`Submission Readiness.md`](Submission%20Readiness.md) | Final claims, deliverables, and manual checks |
-| [`Engineering Deliverables Audit.md`](Engineering%20Deliverables%20Audit.md) | Final audit of the assigned Codex engineering scope |
+| [`Reimplementation/README.md`](Reimplementation/README.md) | Entry point for setup, architecture, limitations, and reproducibility evidence |
+| [`Reimplementation/formal_partial_experiment/`](Reimplementation/formal_partial_experiment/) | Lightweight formal-pilot scripts and recorded result evidence |
+| [`Experiment/README.md`](Experiment/README.md) | Experimental protocol and reporting rules |
+| [`Experiment/Formal Partial Experiment.md`](Experiment/Formal%20Partial%20Experiment.md) | Formal pilot design and result |
+| [`Report/Seminar report.md`](Report/Seminar%20report.md) | English seminar report draft |
+| [`notes/`](notes/) | Paper-reading notes |
+| [`Reference/Paper 4-Generate on Graph.pdf`](Reference/Paper%204-Generate%20on%20Graph.pdf) | Paper used for the seminar |
 
-## Local execution
+## Reproducing the setup
 
-The executable GoG checkout is maintained next to this repository:
-
-```text
-/Users/kiira/Documents/Codex/2026-06-17/readme-md-https-github-com-yaooxu/GoG
-```
-
-Its end-to-end instructions are in `GoG/RUN_PARTIAL.md`. Secrets are stored
-only in the local `GoG/.env` file and are not committed.
-
-Engineering diagrams and the executable checklist are available in:
-
-- [`Reimplementation/Architecture.md`](Reimplementation/Architecture.md)
-- [`Reimplementation/Reproduction Checklist.md`](Reimplementation/Reproduction%20Checklist.md)
-- [`Reimplementation/Reproduction Audit.md`](Reimplementation/Reproduction%20Audit.md)
-- [`Reimplementation/gog_partial_setup/`](Reimplementation/gog_partial_setup/) contains the reusable engineering package.
-- [`Reimplementation/gog_formal_setup/`](Reimplementation/gog_formal_setup/) contains the independent pilot package and upstream compatibility patch.
-
-Run the dependency-free repository audit before each commit:
+Clone the official GoG implementation separately:
 
 ```bash
-python3 tools/check_repository.py
+git clone https://github.com/YaooXu/GoG.git
+cd GoG
 ```
 
-Compile the report template with:
+Then follow:
+
+- [`Reimplementation/Partial Setup Guide.md`](Reimplementation/Partial%20Setup%20Guide.md)
+- [`Reimplementation/Formal Pilot Guide.md`](Reimplementation/Formal%20Pilot%20Guide.md)
+- [`Reimplementation/Freebase Setup.md`](Reimplementation/Freebase%20Setup.md)
+
+This documentation repository intentionally does not store generated Virtuoso
+databases, model weights, large RDF files, API credentials, or local absolute
+paths. Commands use paths relative to the root of a GoG checkout.
+
+## Evidence
+
+Machine-readable summary files are available in:
+
+- [`Experiment/DEMO Pipeline Evidence.json`](Experiment/DEMO%20Pipeline%20Evidence.json)
+- [`Experiment/Formal Pilot Evidence.json`](Experiment/Formal%20Pilot%20Evidence.json)
+- [`Reimplementation/formal_partial_experiment/results/experiment_evidence.json`](Reimplementation/formal_partial_experiment/results/experiment_evidence.json)
+
+The formal pilot evidence can be printed locally with:
 
 ```bash
-make -C Report/latex
+cd Reimplementation
+./show_formal_result.sh
 ```
 
-## Research question
-
-Can an LLM combine retrieved graph evidence with its internal knowledge to
-answer complex questions when crucial KG triples are missing?
+See the [reproduction audit](Reimplementation/Reproduction%20Audit.md) for the
+claim boundary and known limitations.
 
 ## Sources
 
 - [GoG paper on arXiv](https://arxiv.org/abs/2404.14741)
 - [Official GoG implementation](https://github.com/YaooXu/GoG)
 - [Google Freebase data dumps](https://developers.google.com/freebase)
+- [QLever Freebase endpoint](https://qlever.dev/freebase)
